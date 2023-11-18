@@ -1,6 +1,6 @@
-const {expect} = require("chai");
+const { expect } = require("chai")
 const {ethers} = require("hardhat");
-let TestToken, testToken, bankrollContract, plinko, addr1, addr2;
+let TestToken, testToken, bankrollContract, plinko, addr1, addr2, owner;
 const totalSupply = BigInt("10000000000000000000000000");
 
 describe("Plinko Contract", function () {
@@ -20,18 +20,74 @@ describe("Plinko Contract", function () {
         plinko = await Plinko.deploy(testToken.address);
         await plinko.deployed();
 
-        await bankrollContract.setToken(await testToken.getAddress(), true);
+        await bankrollContract.setToken(await testToken.address, true);
 
         const bankRollFunds = BigInt("5000000000")
-        await testToken.transfer(bankrollContract.getAddress(), bankRollFunds);
-        await testToken.transfer(addr1.address, testToken.balanceOf(owner));
+        await testToken.transfer(bankrollContract.address, bankRollFunds);
 
-        await testToken.connect(addr1).approve(bankrollContract.getAddress(), totalSupply);
+        await testToken.connect(addr1).approve(bankrollContract.address, totalSupply);
 
     });
 
-    describe("Bankroll", function (){
-        it ("Should");
+    describe("Bankroll", function () {
+        it("should allow owner to set game access", async function () {
+            bankrollContract.setGame(plinko.address, true);
+            expect(await bankrollContract.isGame(plinko.address)).to.equal(true);
+        });
+
+        it("should allow owner to set token access", async function () {
+            const tokenAddress = ethers.Wallet.createRandom().address;
+            await expect(bankrollContract.setToken(tokenAddress, true))
+                .to.emit(bankrollContract, 'TokenStateChanged')
+                .withArgs(tokenAddress, true);
+
+            console.log(bankrollContract.isToken());
+        });
+
+        it("Should revert if non-owner tries to set game", async function () {
+            const gameAddress = ethers.Wallet.createRandom().address;
+            await expect(bankrollContract.connect(addr1).setGame(gameAddress, true))
+                .to.be.revertedWith("Ownable: caller is not the owner");
+        });
+
+        it("should transfer token payout", async function () {
+            const payoutAmount = ethers.utils.parseUnits("50", 18);
+            await expect(bankrollContract.transferTokenPayout(testToken.address, addr1.address, payoutAmount))
+                .to.changeTokenBalance(testToken, addr1, payoutAmount);
+        });
+
+        it("should fail if payout amount exceeds contract balance", async function () {
+            const payoutAmount = ethers.utils.parseUnits("1000000000", 18); // Large amount
+            await expect(bankrollContract.transferTokenPayout(testToken.address, addr1.address, payoutAmount))
+                .to.be.revertedWith("Insufficient balance in contract");
+        });
+
+        it("should allow users to unstake tokens", async function () {
+            const stakeAmount = ethers.utils.parseUnits("100", 18);
+            const unstakeAmount = ethers.utils.parseUnits("50", 18);
+            await testToken.connect(addr1).approve(bankrollContract.address, stakeAmount);
+            await bankrollContract.connect(addr1).stake(stakeAmount);
+
+            await network.provider.send("evm_increaseTime", [24 * 60 * 60]); // Increase time by 1 day
+            await network.provider.send("evm_mine");
+
+            await expect(bankrollContract.connect(addr1).unstake(unstakeAmount))
+                .to.emit(bankrollContract, 'Unstaked')
+                .withArgs(addr1.address, unstakeAmount, await ethers.provider.getBlockNumber());
+
+            const stakerInfo = await bankrollContract.stakers(addr1.address);
+            expect(stakerInfo.stakedAmount).to.equal(stakeAmount.sub(unstakeAmount));
+        });
+
+        it("should fail to unstake before minimum stake time", async function () {
+            const stakeAmount = ethers.utils.parseUnits("100", 18);
+            await testToken.connect(addr1).approve(bankrollContract.address, stakeAmount);
+            await bankrollContract.connect(addr1).stake(stakeAmount);
+
+            await expect(bankrollContract.connect(addr1).unstake(stakeAmount))
+                .to.be.revertedWith("Stake must be held for at least 1 day");
+        });
+
     });
 
     describe("Plinko", function () {

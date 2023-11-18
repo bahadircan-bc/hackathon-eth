@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-ethers");
 require("dotenv").config();
+require("@nomicfoundation/hardhat-chai-matchers")
 
 const { PRIVATE_KEY } = process.env;
 const defaultNetwork = "scrollSepolia";
