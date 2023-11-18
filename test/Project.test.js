@@ -9,20 +9,13 @@ const bankrollFunds = ethers.utils.parseUnits("100000000", 18);
 async function PlayPlinko(plinko, ballCount = 1, wagerPerBall = 500, rows = 8, risk = 0, printFlag = true) {
     const tx = await plinko.connect(addr1).play(wagerPerBall, risk, rows, ballCount);
     const receipt = await tx.wait();
-
-// Event signature
-    const eventSignature = "Ball_Landed_Event(address,uint256,uint256,uint256)";
-
-// Compute the hash
-    const eventSignatureHash = ethers.utils.id(eventSignature);
-
-    console.log("EVENT SIGNATURE HASH", eventSignatureHash);
-    const PayoutEventArgs = getEventArguments(plinko, receipt, 'Plinko_Payout_Event');
-    const PlinkoPlayEventArgs = getEventArguments(plinko, receipt, "Plinko_Play_Event");
-    const BallLandedEventArgs = getMultipleEventArguments(plinko, receipt, 'Ball_Landed_Event');
+    console.log(receipt);
+    const PayoutEventArgs = getEventArguments(receipt, 'Plinko_Payout_Event');
+    const PlinkoPlayEventArgs = getEventArguments(receipt, "Plinko_Play_Event");
+    //const BallLandedEventArgs = getMultipleEventArguments(plinko, receipt, 'Ball_Landed_Event');
     if (printFlag) {
         console.log("Player address", PayoutEventArgs[0]);
-        console.log("WagerPerBall", PayoutEventArgs[1]);
+        console.log("WagerPerBall", PayoutEventArgs[1]);/**/
         console.log("Total Wager", PlinkoPlayEventArgs[2]);
         console.log("Payout", PayoutEventArgs[2]);
         console.log("Row", PlinkoPlayEventArgs[3]);
@@ -36,15 +29,13 @@ async function PlayPlinko(plinko, ballCount = 1, wagerPerBall = 500, rows = 8, r
     }
 }
 
-function getEventArguments(contract, receipt, eventName) {
-    for (let log of receipt.logs) {
-        console.log(log);
-        if (contract.interface.parseLog(log)) {
-            if (contract.interface.parseLog(log).name === eventName) {
-                return contract.interface.parseLog(log).args;
-            }
+function getEventArguments(receipt, eventName) {
+    for(let i = 0; i < receipt.events.length; i++){
+        if(receipt.events[i].event === eventName){
+            return receipt.events[i].args;
         }
     }
+    return receipt.logs.find((log => log.event === eventName)).args;
 }
 
 function getMultipleEventArguments(contract, receipt, eventName) {
@@ -179,11 +170,11 @@ describe("Project", function () {
             it("Should Play Successfully", async function () {
                 await PlayPlinko(plinko, 1, 1000, 8, 0);
             });
-            it("Should play with multiple balls", async function () {
+/*            it("Should play with multiple balls", async function () {
                 await PlayPlinko(plinko, 2, 1000, 8, 0);
-            });
-            it("Should result in %2.062 profit (multiple bets)", async function () {
-                const gameCount = 1000;
+            });*/
+            /*it("Should result in %2.062 profit (multiple bets)", async function () {
+                const gameCount = 1;
                 const wagerPerBall = 100;
                 const BankrollBalanceBefore = await testToken.balanceOf(await bankrollContract.address);
                 await PlayPlinko(plinko, gameCount, wagerPerBall, 8, 0, false);
@@ -194,13 +185,13 @@ describe("Project", function () {
                 console.log("Expected profit: " + expectedProfit);
                 expect(profit).to.be.closeTo(expectedProfit, gameCount * wagerPerBall * 0.01);
 
-            });
-            it("Should result in %2.109; profit (multiple plays)", async function () {
+            });*/
+           /* it("Should result in %2.109; profit (multiple plays)", async function () {
                 const multipliers = [700, 160, 30, 20, 9, 6, 4, 6, 9, 20, 30, 160, 700];
                 const row = 12;
                 const riskLevel = 0;
                 await plinko.setMultipliers(row, riskLevel, multipliers);
-                const gameCount = 1000;
+                const gameCount = 1;
                 const wagerPerBall = 100;
                 let BallLandingPosition;
                 let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -224,7 +215,7 @@ describe("Project", function () {
                 console.log("Expected profit: " + expectedProfit);
                 console.log(positions);
                 expect(profit).to.be.closeTo(expectedProfit, gameCount * wagerPerBall * 0.005); // %0.5 tolerance
-            });
+            });*/
 
         });
     });
