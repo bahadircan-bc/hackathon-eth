@@ -55,6 +55,8 @@ contract Plinko is ReentrancyGuard, Ownable {
     constructor(IERC20 _token){
         token = _token;
     }
+    receive() external payable {}
+
 
     function getMultipliers(uint8 risk, uint8 numRows)
     external
@@ -127,7 +129,7 @@ contract Plinko is ReentrancyGuard, Ownable {
             }
             emit Ball_Landed_Event(game.player, ballNumber, position, plinkoMultipliers[game.risk][game.rows][position]);
             //multipliers are multiplied by 100 to avoid floating point numbers
-            payout += game.wager * plinkoMultipliers[game.risk][game.rows][position] / 100;
+            payout += game.wager * plinkoMultipliers[game.risk][game.rows][position] / 10;
         }
 
         return payout;

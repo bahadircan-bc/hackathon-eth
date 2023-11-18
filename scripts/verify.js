@@ -4,7 +4,7 @@ const initialSupply = ethers.utils.parseUnits("10000000000000000", 18);
 async function main() {
     const contracts = [
         { address: '0x73d910c167eD88e6be217f5a006FfA291b3eeaef', constructorArguments: [initialSupply] }, //token
-        { address: '0xe8899F37b1eb01a43a3A3EB3E6a7a3D74821B280', constructorArguments: ['0x73d910c167eD88e6be217f5a006FfA291b3eeaef'] }, //plinko
+        { address: '0xc4651cd64d8b68f957371cc08a114430f4bfc449', constructorArguments: ['0x73d910c167eD88e6be217f5a006FfA291b3eeaef'] }, //plinko
         { address: '0xF1fbD98Ac8727e88469292B8b87A65B4f7695bC0', constructorArguments: ['0x73d910c167eD88e6be217f5a006FfA291b3eeaef'] }, //bankroll
     ];
 
