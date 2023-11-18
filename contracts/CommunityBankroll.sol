@@ -24,6 +24,12 @@ contract Bankroll is Ownable {
     // Stores whether a token is allowed to be wagered
     mapping(address => bool) public isTokenAllowed;
 
+    // Event emitted when game state is changed
+    event GameStateChanged(address game, bool isActive);
+
+    // Event emitted when token state is changed
+    event TokenStateChanged(address token, bool isAllowed);
+
     constructor(address _stakingToken) {
         stakingToken = IERC20(_stakingToken);
     }
@@ -46,20 +52,12 @@ contract Bankroll is Ownable {
     uint256 public totalStaked;
     int256 public totalEarnings;
 
-    struct Staker {
-        uint256 stakedAmount;
-        int256 stakerInitialEarnings;
-        uint256 stakeTime;
-    }
+
 
     mapping(address => Staker) public stakers;
 
     event Staked(address indexed user, uint256 amount, uint256 time);
     event Unstaked(address indexed user, uint256 amount, uint256 time);
-
-    constructor(address _stakingToken) {
-        stakingToken = IERC20(_stakingToken);
-    }
 
     function stake(uint256 _amount) external {
         updatePoolEarnings();

@@ -1,11 +1,18 @@
-require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-ethers");
+require("dotenv").config();
 
-// The next line is part of the sample project, you don't need it in your
-// project. It imports a Hardhat task definition, that can be used for
-// testing the frontend.
-require("./tasks/faucet");
+const { PRIVATE_KEY } = process.env;
+const defaultNetwork = "scrollSepolia";
 
-/** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+const config = {
   solidity: "0.8.17",
+
+  networks: {
+    scrollSepolia: {
+      url: "https://sepolia-rpc.scroll.io/",
+      accounts: PRIVATE_KEY !== undefined ? [`0x${PRIVATE_KEY}`] : []
+    },
+  },
 };
+
+module.exports = config;
