@@ -6,6 +6,9 @@ import Root from "./components/Root.jsx";
 import PlinkoPage from "./components/PlinkoPage.jsx";
 import "./App.css";
 
+import { MetaMaskProvider } from "@metamask/sdk-react";
+import { MetaMaskUIProvider } from "@metamask/sdk-react-ui";
+
 import {
   BrowserRouter,
   createBrowserRouter,
@@ -35,6 +38,10 @@ const router = createBrowserRouter(
 
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <MetaMaskUIProvider>
+      <MetaMaskProvider>
+        <RouterProvider router={router} />
+      </MetaMaskProvider>
+    </MetaMaskUIProvider>
   </React.StrictMode>
 );
