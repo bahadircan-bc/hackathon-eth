@@ -31,6 +31,9 @@ contract Plinko is ReentrancyGuard, Ownable {
     {
         return plinkoMultipliers[risk][numRows];
     }
+    function setMultipliers(uint8 risk, uint8 numRows, uint256[] memory multipliers) external onlyOwner {
+        plinkoMultipliers[risk][numRows] = multipliers;
+    }
 
     function getPseudoRandomness() private view returns(uint256) {
         uint256 randomValue = 29111923; //We have encountered problems when using vrf coordinator on testnet, so we use a pseudo random number for now

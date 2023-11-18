@@ -37,8 +37,8 @@
       ]
     },
     "/Users/candas/Documents/GitHub/hackathon-eth/contracts/Plinko.sol": {
-      "lastModificationDate": 1700267225648,
-      "contentHash": "7f74bf36bc393262f5c0f3bc313e5208",
+      "lastModificationDate": 1700267607236,
+      "contentHash": "c04de818816347b07e47cd3cbd717a1c",
       "sourceName": "contracts/Plinko.sol",
       "solcConfig": {
         "version": "0.8.17",
