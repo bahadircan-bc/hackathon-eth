@@ -10,6 +10,13 @@ contract Bankroll is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     IERC20 public stakingToken;
+    uint256 public totalStaked;
+    int256 public totalEarnings;
+    uint256 constant MINIMUM_STAKE_TIME = 1 days;  // 1 day in seconds
+    mapping(address => Staker) public stakers;
+
+    event Staked(address indexed user, uint256 amount, uint256 time);
+    event Unstaked(address indexed user, uint256 amount, uint256 time);
 
     receive() external payable {}
 
@@ -48,17 +55,6 @@ contract Bankroll is Ownable {
         return isTokenAllowed[token];
     }
 
-
-    uint256 public totalStaked;
-    int256 public totalEarnings;
-
-
-
-    mapping(address => Staker) public stakers;
-
-    event Staked(address indexed user, uint256 amount, uint256 time);
-    event Unstaked(address indexed user, uint256 amount, uint256 time);
-
     function stake(uint256 _amount) external {
         updatePoolEarnings();
 
@@ -79,6 +75,7 @@ contract Bankroll is Ownable {
 
         require(_amount > 0, "Amount should be greater than 0");
         require(stakers[msg.sender].stakedAmount >= _amount, "Insufficient staked amount");
+        require(block.timestamp >= stakers[msg.sender].stakeTime + MINIMUM_STAKE_TIME, "Stake must be held for at least 1 day");
 
         stakers[msg.sender].stakedAmount = stakers[msg.sender].stakedAmount.sub(_amount);
         totalStaked = totalStaked.sub(_amount);
