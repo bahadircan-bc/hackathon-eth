@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import LandingPage from "./components/LandingPage";
 import StakerPage from "./components/StakerPage";
 import Root from "./components/Root.jsx";
+import PlinkoPage from "./components/PlinkoPage.jsx";
 import "./App.css";
 
 import {
@@ -27,6 +28,7 @@ const router = createBrowserRouter(
     <Route path="/" element={<Root />}>
       <Route path="/" element={<LandingPage />} />,
       <Route path="/staker" element={<StakerPage />} />,
+      <Route path="/plinko" element={<PlinkoPage />} />,
     </Route>,
   ])
 );
