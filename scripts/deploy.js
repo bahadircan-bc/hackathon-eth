@@ -4,7 +4,7 @@ async function main() {
   console.log("Deploying contracts with the account:", deployer.address);
 
   const MyContract = await ethers.getContractFactory("AsenaToken");
-  const myContract = await MyContract.deploy();
+  const myContract = await MyContract.deploy("10000000000000000000000000");
 
   console.log("MyContract address:", myContract.address);
 }
