@@ -1,13 +1,24 @@
 const {expect} = require("chai")
 const {ethers} = require("hardhat");
-let TestToken, testToken, bankrollContract, plinko, addr1, addr2, owner;
+const {} = require("mocha/lib/utils");
+
+let TestToken, testToken, bankrollContract, plinko, addr1, addr2, owner, printflag;
 const totalSupply = ethers.utils.parseUnits("1000000000000000", 18);
+const bankrollFunds = ethers.utils.parseUnits("100000000", 18);
 
 async function PlayPlinko(plinko, ballCount = 1, wagerPerBall = 500, rows = 8, risk = 0, printFlag = true) {
-    const tx = await plinko.connect(addr1).play(ballCount, wagerPerBall, rows, risk);
+    const tx = await plinko.connect(addr1).play(wagerPerBall, risk, rows, ballCount);
     const receipt = await tx.wait();
+
+// Event signature
+    const eventSignature = "Ball_Landed_Event(address,uint256,uint256,uint256)";
+
+// Compute the hash
+    const eventSignatureHash = ethers.utils.id(eventSignature);
+
+    console.log("EVENT SIGNATURE HASH", eventSignatureHash);
     const PayoutEventArgs = getEventArguments(plinko, receipt, 'Plinko_Payout_Event');
-    const PlinkoPlayEventArgs = getEventArguments(plinko, receipt, 'Plinko_Play_Event');
+    const PlinkoPlayEventArgs = getEventArguments(plinko, receipt, "Plinko_Play_Event");
     const BallLandedEventArgs = getMultipleEventArguments(plinko, receipt, 'Ball_Landed_Event');
     if (printFlag) {
         console.log("Player address", PayoutEventArgs[0]);
@@ -25,8 +36,30 @@ async function PlayPlinko(plinko, ballCount = 1, wagerPerBall = 500, rows = 8, r
     }
 }
 
+function getEventArguments(contract, receipt, eventName) {
+    for (let log of receipt.logs) {
+        console.log(log);
+        if (contract.interface.parseLog(log)) {
+            if (contract.interface.parseLog(log).name === eventName) {
+                return contract.interface.parseLog(log).args;
+            }
+        }
+    }
+}
 
-describe("Plinko Contract", function () {
+function getMultipleEventArguments(contract, receipt, eventName) {
+    let events = [];
+    for (let log of receipt.logs) {
+        if (contract.interface.parseLog(log)) {
+            if (contract.interface.parseLog(log).name === eventName) {
+                events.push(contract.interface.parseLog(log).args);
+            }
+        }
+    }
+    return events;
+}
+
+describe("Project", function () {
 
     beforeEach(async function () {
         const Plinko = await ethers.getContractFactory("Plinko");
@@ -46,11 +79,13 @@ describe("Plinko Contract", function () {
 
         await bankrollContract.setToken(await testToken.address, true);
 
-        const bankRollFunds = ethers.utils.parseUnits("100000000", 18);
-        await testToken.transfer(bankrollContract.address, bankRollFunds);
-        await testToken.transfer(addr1.address, bankRollFunds);
+        await testToken.transfer(bankrollContract.address, bankrollFunds);
+        await testToken.transfer(addr1.address, bankrollFunds);
 
         await testToken.connect(addr1).approve(bankrollContract.address, totalSupply);
+        await testToken.connect(addr1).approve(plinko.address, totalSupply);
+
+        await plinko.setBankroll(bankrollContract.address);
         plinko.setMultipliers(0, 8, multipliers)
     });
 
@@ -132,8 +167,65 @@ describe("Plinko Contract", function () {
 
             //expect(updatedMultipliers).to.deep.equal(multipliers);//its working im am lazy of typecastng just passing
         });
+        it("Should set bankroll correctly", async function () {
+            await plinko.setBankroll(bankrollContract.address);
+            expect(await plinko.getBankroll()).to.equal(bankrollContract.address);
+        });
+        it("Bankroll should have starting funds", async function () {
+            expect(await testToken.balanceOf(await bankrollContract.address)).to.equal(bankrollFunds);
+        });
+        describe("Simulations", function () {
 
+            it("Should Play Successfully", async function () {
+                await PlayPlinko(plinko, 1, 1000, 8, 0);
+            });
+            it("Should play with multiple balls", async function () {
+                await PlayPlinko(plinko, 2, 1000, 8, 0);
+            });
+            it("Should result in %2.062 profit (multiple bets)", async function () {
+                const gameCount = 1000;
+                const wagerPerBall = 100;
+                const BankrollBalanceBefore = await testToken.balanceOf(await bankrollContract.address);
+                await PlayPlinko(plinko, gameCount, wagerPerBall, 8, 0, false);
+                const BankrollBalanceAfter = await testToken.balanceOf(await bankrollContract.address);
+                const expectedProfit = gameCount * wagerPerBall * 0.02062;
+                const profit = Number(BankrollBalanceAfter - BankrollBalanceBefore);
+                console.log("Profit: " + profit);
+                console.log("Expected profit: " + expectedProfit);
+                expect(profit).to.be.closeTo(expectedProfit, gameCount * wagerPerBall * 0.01);
+
+            });
+            it("Should result in %2.109; profit (multiple plays)", async function () {
+                const multipliers = [700, 160, 30, 20, 9, 6, 4, 6, 9, 20, 30, 160, 700];
+                const row = 12;
+                const riskLevel = 0;
+                await plinko.setMultipliers(row, riskLevel, multipliers);
+                const gameCount = 1000;
+                const wagerPerBall = 100;
+                let BallLandingPosition;
+                let positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                let totalPayout = 0;
+                const BankrollBalanceBefore = await testToken.balanceOf(await bankrollContract.address);
+
+                for (let i = 0; i < gameCount; i++) {
+                    const tx = await plinko.connect(addr1).play(1, wagerPerBall, 12, 0);
+                    const receipt = await tx.wait();
+                    BallLandingPosition = getEventArguments(plinko, receipt, 'Ball_Landed_Event')[2];
+                    totalPayout += Number(getEventArguments(plinko, receipt, 'Plinko_Payout_Event')[2]);
+                    ++positions[BallLandingPosition];
+                    process.stdout.write(`${i}\t${BallLandingPosition}\r`);
+                }
+                console.log("Total payout: " + totalPayout);
+                const BankrollBalanceAfter = await testToken.balanceOf(await bankrollContract.address);
+                const expectedProfit = gameCount * wagerPerBall * 0.02109;
+                const profit = Number(BankrollBalanceAfter - BankrollBalanceBefore);
+
+                console.log("Profit: " + profit);
+                console.log("Expected profit: " + expectedProfit);
+                console.log(positions);
+                expect(profit).to.be.closeTo(expectedProfit, gameCount * wagerPerBall * 0.005); // %0.5 tolerance
+            });
+
+        });
     });
-
-
 });

@@ -1,6 +1,8 @@
 require("@nomiclabs/hardhat-ethers");
 require("dotenv").config();
 require("@nomicfoundation/hardhat-chai-matchers")
+require("@nomiclabs/hardhat-etherscan");
+
 
 const { PRIVATE_KEY } = process.env;
 const defaultNetwork = "scrollSepolia";
@@ -16,7 +18,7 @@ const config = {
   },
   etherscan: {
     apiKey: {
-      scrollSepolia: 'abc',
+      scrollSepolia: 'A95MIC2SCSW6ETX8IBAKAKXGKSM5PC5YDV',
     },
     customChains: [
       {

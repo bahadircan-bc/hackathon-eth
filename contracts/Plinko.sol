@@ -28,6 +28,27 @@ contract Plinko is ReentrancyGuard, Ownable {
 
     error WagerAboveLimit(uint256 wager, uint256 maxWager);
 
+    event Plinko_Play_Event(
+        address indexed playerAddress,
+        uint256 wager,
+        uint256 totalWager,
+        uint8 numRows,
+        uint8 risk
+    );
+
+    event Ball_Landed_Event(
+        address indexed playerAddress,
+        uint256 ballNumber,
+        uint256 landingPosition,
+        uint256 multiplier
+    );
+
+    event Plinko_Payout_Event(
+        address indexed playerAddress,
+        uint256 wager,
+        uint256 payout
+    );
+
     mapping(uint8 => mapping(uint8 => uint256[])) public plinkoMultipliers;
     mapping(address => Bet) private games;
 
@@ -50,6 +71,7 @@ contract Plinko is ReentrancyGuard, Ownable {
     function setBankroll(address _bankroll) external onlyOwner {
         bankroll = IBankroll(_bankroll);
     }
+
     function getBankroll() external view returns (address) {
         return address(bankroll);
     }
@@ -81,6 +103,44 @@ contract Plinko is ReentrancyGuard, Ownable {
         _kellyWager(totalWager, address(token));
         token.safeTransferFrom(player, address(bankroll), totalWager);
         games[player] = Bet(player, wager, multipleBets, numRows, risk);
+        Bet memory game = games[player];
+        uint256 randomNumber = getPseudoRandomness();
+        uint256 payout = calculatePayout(game, randomNumber);
+        makePayout(game, payout);
+    }
+
+    function calculatePayout(
+        Bet memory game,
+        uint256 randomNumber
+    ) internal
+    returns (uint256) {
+        emit Plinko_Play_Event(game.player, game.wager, game.wager * game.multipleBets, game.rows, game.risk);
+        uint256 payout = 0;
+        uint256 position = 0;
+        for (uint256 ballNumber = 0; ballNumber < game.multipleBets; ballNumber++) {
+            position = 0;
+            for (uint8 i = 0; i < game.rows; i++) {
+                if (randomNumber & 1 != 0) {
+                    position++;
+                }
+                randomNumber >> 1;
+            }
+            emit Ball_Landed_Event(game.player, ballNumber, position, plinkoMultipliers[game.risk][game.rows][position]);
+            //multipliers are multiplied by 100 to avoid floating point numbers
+            payout += game.wager * plinkoMultipliers[game.risk][game.rows][position] / 100;
+        }
+
+        return payout;
+    }
+
+    function makePayout(
+        Bet memory game,
+        uint256 payout
+    ) internal {
+        if (payout > 0) {
+            bankroll.transferTokenPayout(address(token), game.player, payout);
+        }
+        emit Plinko_Payout_Event(game.player, game.wager, payout);
     }
 
     function _kellyWager(uint256 bet, address tokenAddress) internal view {
