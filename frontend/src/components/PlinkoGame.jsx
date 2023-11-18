@@ -270,7 +270,7 @@ const PlinkoGame = forwardRef((props, ref) => {
             Composite.get(engine.current.world, (bodyA.id + 1) ** 2 + 3, "body")
           );
           World.remove(engine.current.world, bodyA);
-        }, 250);
+        }, 500);
         // console.log("collision detected ", event.pairs[0]);
       }
     }

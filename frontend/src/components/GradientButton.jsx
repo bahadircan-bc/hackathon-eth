@@ -74,7 +74,7 @@ export default function GradientButton(props) {
       >
           <div
             id={`gradient-div-${id}`}
-            className={`rounded-lg absolute w-[150%] aspect-square bg-gradient-custom-l transition-all duration-1000 hover:rotate-180 hover:bg-opacity-100 rotate-0 bg-opacity-100`}
+            className={`rounded-lg absolute w-[150%] aspect-square bg-gradient-custom-l transition-all duration-1000 hover:rotate-[360deg] hover:bg-opacity-100 rotate-0 bg-opacity-100`}
           ></div>
       </div>
       <div id={`button-content-${id}`} className={`absolute inset-0 ${props.className}`}>

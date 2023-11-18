@@ -18,24 +18,24 @@ export default function Root() {
   };
 
   return (
-    <div className="bg-[#121A2A] w-screen h-screen">
-      <div className="w-full h-[50px] bg-[#d9d9d9] flex items-center justify-evenly px-[30%] bg-opacity-50 text-xs text-white fixed">
+    <div className="bg-black w-screen h-screen">
+      <div className="w-full h-[50px] bg-[#1a1a1a] flex items-center justify-evenly px-[30%] bg-opacity-50 text-xs text-white fixed">
         <Link
           to={""}
-          className="hover:no-underline text-[#f0f0f0] hover:text-[#fff] transition-colors duration-100"
+          className="hover:no-underline text-[#f0f0f0] hover:text-white transition-colors duration-100"
         >
           Home Page
         </Link>
         <Link
           to={"plinko"}
-          className="hover:no-underline text-[#f0f0f0] hover:text-[#fff] transition-colors duration-100"
+          className="hover:no-underline text-[#f0f0f0] hover:text-white transition-colors duration-100"
         >
           Plinko
         </Link>
-        <div className="text-[#d9d9d9]">Coin Flip</div>
+        <div className="text-lighter">Coin Flip</div>
         <Link
           to={"staker"}
-          className="hover:no-underline text-[#f0f0f0] hover:text-[#fff] transition-colors duration-100"
+          className="hover:no-underline text-[#f0f0f0] hover:text-white transition-colors duration-100"
         >
           Become A Staker!
         </Link>

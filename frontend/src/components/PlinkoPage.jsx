@@ -112,7 +112,7 @@ export default function PlinkoPage() {
           onChange={handleNumberOfBetsChange}
         />
         <GradientButton
-          className="h-[50px] w-[100px] flex items-center justify-center"
+          className="h-[50px] w-[100px] flex self-center justify-center items-center"
           stroke={2}
           rounded={8}
           onClick={handleClick}
