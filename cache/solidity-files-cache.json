@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/candas/Documents/GitHub/hackathon-eth/contracts/CommunityBankroll.sol": {
-      "lastModificationDate": 1700297285732,
-      "contentHash": "ef53a950e2573cde8b240bfd6608e6dc",
+      "lastModificationDate": 1700298059463,
+      "contentHash": "588352920370d4721d5cf22829e68e2d",
       "sourceName": "contracts/CommunityBankroll.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -41,8 +41,8 @@
       ]
     },
     "/Users/candas/Documents/GitHub/hackathon-eth/contracts/Plinko.sol": {
-      "lastModificationDate": 1700267607236,
-      "contentHash": "c04de818816347b07e47cd3cbd717a1c",
+      "lastModificationDate": 1700301228998,
+      "contentHash": "a638c994ece7177ddf0f09be22f759fe",
       "sourceName": "contracts/Plinko.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -76,6 +76,7 @@
         "^0.8.0"
       ],
       "artifacts": [
+        "IBankroll",
         "Plinko"
       ]
     },
