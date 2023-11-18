@@ -1,6 +1,46 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+const AmountInput = (props) => {
+  return (
+    <div
+      id="amount-input"
+      className="flex flex-row w-full bg-[#141414] rounded-md items-center relative p-2"
+    >
+      <div className="px-2">ASN</div>
+      <input className="flex-1 p-2 focus:outline-none rounded-md bg-[#141414] bg-opacity-20" />
+      <div className="absolute right-5 rounded-lg text-[#6a6a6a] bg-[#1a1a1a] px-2 py-1 cursor-pointer">
+        Max
+      </div>
+    </div>
+  );
+};
+
+const StakeInformationCol = (props) => {
+  const { label, value, ...rest } = props;
+  return (
+    <div
+      className="odd:bg-[#262626] flex flex-row p-2 rounded-lg text-xs"
+      {...rest}
+    >
+      <div>{label}</div>
+      <div className="ml-auto text-white">{value}</div>
+    </div>
+  );
+};
+
+const StakeInformation = (props) => {
+  return (
+    <div className="flex flex-col mt-auto text-[#6a6a6a]">
+      <StakeInformationCol label="Harvestable Funds" value="world" />
+      <StakeInformationCol label="ASN Staked" value="world" />
+      <StakeInformationCol label="Your Share" value="world" />
+      <StakeInformationCol label="APY" value="world" />
+      <StakeInformationCol label="Bankroll Balance" value="world" />
+    </div>
+  );
+};
+
 export default function StakerPage() {
   const bankrollVolume = 0;
   const userStaked = 0;
@@ -10,116 +50,74 @@ export default function StakerPage() {
   const [stakeAmount, setStakeAmount] = React.useState(0);
   const [harvestAmount, setHarvestAmount] = React.useState(0);
 
-  const [stakeWindowOn, setStakeWindowOn] = React.useState(false);
+  const [stakeWindowOn, setStakeWindowOn] = React.useState(true);
   const [harvestWindowOn, setHarvestWindowOn] = React.useState(false);
-  const [leaveWindowOn, setLeaveWindowOn] = React.useState(false);
+  const [unstakeWindowOn, setUnstakeWindowOn] = React.useState(false);
 
   return (
-    <div className="flex-1 flex items-center justify-center">
-      <div className="border p-5 rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 gap-5 flex flex-col text-lg mr-4">
-        Hello Staker!
-        <div className="flex-1 flex flex-col justify-evenly text-sm text-[#d9d9d9]">
-          <div>Total volume of Bankroll: </div>
-          <div className="self-end">
-            {bankrollVolume} {tokenSymbol}
-          </div>
-          <div>Total staked: </div>
-          <div className="self-end">
-            {userStaked} {tokenSymbol}
-          </div>
-          <div>Profit: </div>
-          <div className="self-end">
-            {userProfit} {tokenSymbol}
-          </div>
-        </div>
-      </div>
-      <div className="border p-5 rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 gap-5 flex flex-col mr-4">
-        <div className="w-full h-full flex flex-col justify-evenly items-center">
+    <div
+      id="window-container"
+      className="bg-darker w-full h-full flex items-center justify-center"
+    >
+      <div
+        id="card"
+        className="w-1/3 aspect-[9/12] text-[#6a6a6a] rounded-lg flex flex-col"
+      >
+        <div id="card-header" className="flex flex-row w-full text-center">
           <div
-            className="w-full border rounded-lg text-center py-2"
+            className={`p-2 rounded-t-lg border-r border-t min-w-[20%] border-dark text-sm ${
+              stakeWindowOn ? "bg-[#1a1a1a] text-white" : "bg-[#141414]"
+            } cursor-pointer`}
             onClick={() => {
+              setStakeWindowOn(true);
               setHarvestWindowOn(false);
-              setStakeWindowOn(!stakeWindowOn);
+              setUnstakeWindowOn(false);
             }}
           >
             Stake
           </div>
           <div
-            className="w-full border rounded-lg text-center py-2"
+            className={`p-2 rounded-t-lg border-r border-t min-w-[20%] border-dark text-sm ${
+              unstakeWindowOn ? "bg-[#1a1a1a] text-white" : "bg-[#141414]"
+            } cursor-pointer`}
             onClick={() => {
               setStakeWindowOn(false);
-              setHarvestWindowOn(!harvestWindowOn);
-            }}
-          >
-            Harvest
-          </div>
-          <div
-            className="w-full border rounded-lg text-center py-2 bg-red-500"
-            onClick={() => {
-              setLeaveWindowOn(!leaveWindowOn);
+              setHarvestWindowOn(false);
+              setUnstakeWindowOn(true);
             }}
           >
             Unstake
           </div>
+          <div
+            className={`p-2 rounded-t-lg border-r border-t min-w-[20%] border-dark text-sm ${
+              harvestWindowOn ? "bg-[#1a1a1a] text-white" : "bg-[#141414]"
+            } cursor-pointer`}
+            onClick={() => {
+              setStakeWindowOn(false);
+              setHarvestWindowOn(true);
+              setUnstakeWindowOn(false);
+            }}
+          >
+            Harvest
+          </div>
+        </div>
+        <div
+          id="card-container"
+          className="bg-[#1a1a1a] flex-1 rounded-b-lg rounded-tr-lg p-5 flex flex-col"
+        >
+          <div className="text-sm">
+            <div className="flex mb-1">
+              <div>Select Amount</div>
+              <div className="ml-auto text-xs">Balance: 0</div>
+            </div>
+            <AmountInput />
+          </div>
+          <StakeInformation />
+          <div className="w-full text-center bg-white p-2 mt-4 rounded-lg text-black">
+            Stake
+          </div>
         </div>
       </div>
-      <motion.div
-        initial={{ width: 0, border: 1 }}
-        animate={
-          stakeWindowOn
-            ? { width: "25%", border: "1px solid white", opacity: 1 }
-            : { width: 0, border: "none", opacity: 0 }
-        }
-        className="rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 flex flex-col overflow-hidden"
-      >
-        <div className="p-5 flex flex-col items-center justify-evenly h-full w-full flex-nowrap whitespace-nowrap">
-          <div>Stake</div>
-          <div>
-            {stakeAmount} {tokenSymbol}
-          </div>
-          <input type="range" className="w-full" />
-          <div className="w-full border rounded-lg text-center py-2 bg-green-500">
-            Confirm
-          </div>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={{ width: 0, border: 1 }}
-        animate={
-          harvestWindowOn
-            ? { width: "25%", border: "1px solid white", opacity: 1 }
-            : { width: 0, border: "none", opacity: 0 }
-        }
-        className="rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 flex flex-col overflow-hidden"
-      >
-        <div className="p-5 flex flex-col items-center justify-evenly h-full w-full flex-nowrap whitespace-nowrap">
-          <div>Harvest</div>
-          <div>
-            {harvestAmount} {tokenSymbol}
-          </div>
-          <input type="range" className="w-full" />
-          <div className="w-full border rounded-lg text-center py-2 bg-green-500">
-            Confirm
-          </div>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={{ width: 0, border: 1 }}
-        animate={
-          leaveWindowOn
-            ? { width: "25%", border: "1px solid white", opacity: 1 }
-            : { width: 0, border: "none", opacity: 0 }
-        }
-        className="rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 flex flex-col overflow-hidden"
-      >
-        <div className="p-5 flex flex-col items-center justify-evenly h-full w-full flex-nowrap whitespace-nowrap">
-          <div>Unstake</div>
-          <div>Are you sure you want to unstake?</div>
-          <div className="w-full border rounded-lg text-center py-2 bg-red-500">
-            Confirm
-          </div>
-        </div>
-      </motion.div>
     </div>
   );
 }
