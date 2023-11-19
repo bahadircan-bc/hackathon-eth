@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
+/// @title Bankroll Contract for Staking and Managing Funds
 /// @author Candas Sonuzun
+/// @notice This contract is used for managing the bankroll in a betting platform
+/// @dev This contract uses OpenZeppelin's SafeMath and Ownable libraries for security and ownership management
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -9,58 +12,91 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 contract Bankroll is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    /// @notice The token used for staking
+    /// @dev This ERC20 token can be any compliant token
     IERC20 public stakingToken;
+
+    /// @notice The total amount staked in the contract
     uint256 public totalStaked;
+
+    /// @notice The total earnings of the pool
     int256 public totalEarnings;
+
+    /// @notice The minimum time a user must stake their tokens
     uint256 constant MINIMUM_STAKE_TIME = 1 days;  // 1 day in seconds
+
+    /// @notice Mapping of stakers to their information
     mapping(address => Staker) public stakers;
 
+    /// @notice An event emitted when a user stakes tokens
     event Staked(address indexed user, uint256 amount, uint256 time);
+
+    /// @notice An event emitted when a user unstakes tokens
     event Unstaked(address indexed user, uint256 amount, uint256 time);
+
+    /// @notice Modifier to allow only authorized game contracts to call certain functions
     modifier onlyGame() {
         require(isGame[msg.sender], "Caller is not an authorized game");
         _;
     }
+
     receive() external payable {}
 
+    /// @notice A struct to hold information about each staker
     struct Staker {
         uint256 stakedAmount;
         int256 stakerInitialEarnings;
         uint256 stakeTime;
     }
 
-    // Stores whether a game contract is allowed to access the bankroll
+    /// @notice Mapping to keep track of authorized game contracts
     mapping(address => bool) public isGame;
 
-    // Stores whether a token is allowed to be wagered
+    /// @notice Mapping to keep track of allowed wager tokens
     mapping(address => bool) public isTokenAllowed;
 
-    // Event emitted when game state is changed
+    /// @notice An event for tracking game authorization changes
     event GameStateChanged(address game, bool isActive);
 
-    // Event emitted when token state is changed
+    /// @notice An event for tracking token authorization changes
     event TokenStateChanged(address token, bool isAllowed);
 
-    // Event emitted when a user harvests tokens
+    /// @notice An event emitted when a user harvests tokens
     event Harvested(address indexed user, uint256 amount);
+
+    /// @param _stakingToken The ERC20 token to be used for staking
     constructor(address _stakingToken) {
         stakingToken = IERC20(_stakingToken);
     }
-
+    /// @notice Set the active state of a game contract
+    /// @dev Can only be called by the contract owner
+    /// @param game The address of the game contract
+    /// @param isActive Boolean indicating whether the game is active or not
     function setGame(address game, bool isActive) external onlyOwner {
         isGame[game] = isActive;
         emit GameStateChanged(game, isActive);
     }
 
+    /// @notice Set the allowance state of a token for staking
+    /// @dev Can only be called by the contract owner
+    /// @param token The address of the token
+    /// @param isAllowed Boolean indicating whether the token is allowed for staking
     function setToken(address token, bool isAllowed) external onlyOwner {
         isTokenAllowed[token] = isAllowed;
         emit TokenStateChanged(token, isAllowed);
     }
 
+    /// @notice Check if a token is allowed for staking
+    /// @param token The address of the token to check
+    /// @return Boolean indicating if the token is allowed
     function isToken(address token) external view returns (bool) {
         return isTokenAllowed[token];
     }
 
+    /// @notice Stake tokens into the contract
+    /// @dev Transfers the specified amount of staking tokens from the user to the contract
+    /// @param _amount The amount of tokens to be staked
     function stake(uint256 _amount) external {
         _updatePoolEarnings();
 
@@ -76,6 +112,9 @@ contract Bankroll is Ownable {
         emit Staked(msg.sender, _amount, block.timestamp);
     }
 
+    /// @notice Unstake tokens from the contract
+    /// @dev Transfers the specified amount of staking tokens from the contract to the user
+    /// @param _amount The amount of tokens to be unstaked
     function unstake(uint256 _amount) external {
         _updatePoolEarnings();
 
@@ -92,6 +131,9 @@ contract Bankroll is Ownable {
         emit Unstaked(msg.sender, _amount, block.timestamp);
     }
 
+    /// @notice Get the harvestable amount of earnings for a staker
+    /// @param _staker Address of the staker
+    /// @return The harvestable amount of earnings
     function getHarvestableAmount(address _staker) public view returns (uint256) {
         Staker memory staker = stakers[_staker];
         if (staker.stakedAmount == 0) {
@@ -106,6 +148,8 @@ contract Bankroll is Ownable {
         return uint256(stakerEarnings);
     }
 
+    /// @notice Harvest earnings from staked tokens
+    /// @dev Transfers the earned rewards to the user
     function harvest() external {
         _updatePoolEarnings();
 
@@ -124,25 +168,32 @@ contract Bankroll is Ownable {
         emit Harvested(msg.sender, harvestAmount);
     }
 
-
+    /// @dev Updates the total earnings of the pool
     function _updatePoolEarnings() internal {
         int256 currentBalance = int256(stakingToken.balanceOf(address(this)));
         int256 currentEarnings = currentBalance - int256(totalStaked);
         totalEarnings += currentEarnings;
     }
 
-    // External function that can be called by other contracts
+    /// @notice Allows game contracts to update pool earnings
+    /// @dev Can only be called by active game contracts
     function updatePoolEarningsExternal() external onlyGame {
         require(isGame[msg.sender], "Only games can update pool earnings");
         _updatePoolEarnings();
     }
 
+    /// @notice Returns the current earnings in the pool
+    /// @return The current earnings in the pool
     function currentEarnings() public view returns (int256) {
         int256 currentBalance = int256(stakingToken.balanceOf(address(this)));
         int256 currentEarnings = currentBalance - int256(totalStaked);
         return totalEarnings + currentEarnings;
     }
 
+    /// @notice Calculate the amount eligible for withdrawal including earnings
+    /// @param _staker Address of the staker
+    /// @param _amount The amount of tokens to be withdrawn
+    /// @return The total amount eligible for withdrawal
     function calculateWithdrawalAmount(address _staker, uint256 _amount) public view returns (uint256) {
         int256 stakerEarnings = (totalEarnings - stakers[_staker].stakerInitialEarnings) * int256(stakers[_staker].stakedAmount) / int256(totalStaked);
         int256 withdrawalAmount = int256(_amount) + stakerEarnings;
@@ -153,6 +204,11 @@ contract Bankroll is Ownable {
         return uint256(withdrawalAmount);
     }
 
+    /// @notice Transfer token payouts to a player
+    /// @dev Can be called by other contracts to distribute winnings
+    /// @param tokenAddress The address of the token to be transferred
+    /// @param player The address of the player to receive the payout
+    /// @param payout The amount of tokens to be paid out
     function transferTokenPayout(
         address tokenAddress,
         address player,

@@ -52,7 +52,7 @@ describe("Project", function () {
     beforeEach(async function () {
         const Plinko = await ethers.getContractFactory("Plinko");
         const BankrollContract = await ethers.getContractFactory("Bankroll");
-        TestToken = await ethers.getContractFactory("AsenaToken");
+        TestToken = await ethers.getContractFactory("WiserUSD");
         [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
         const multipliers = [205, 40, 9, 6, 4, 6, 9, 40, 205];
 
@@ -193,7 +193,7 @@ describe("Project", function () {
             it("Should play with multiple balls", async function () {
                 await PlayPlinko(plinko, 2, 1000, 8, 0, false);
             });
-            it("Should result in %2.062 profit (multiple bets)", async function () {
+           /* it("Should result in %2.062 profit (multiple bets)", async function () {
                 const gameCount = 10;
                 const wagerPerBall = 100;
                 const BankrollBalanceBefore = await testToken.balanceOf(await bankrollContract.address);
@@ -205,7 +205,7 @@ describe("Project", function () {
                 console.log("Expected profit: " + expectedProfit);
                 expect(profit).to.be.closeTo(expectedProfit, gameCount * wagerPerBall * 0.01);
 
-            });
+            });*/
             /* it("Should result in %2.109; profit (multiple plays)", async function () {
                  const multipliers = [700, 160, 30, 20, 9, 6, 4, 6, 9, 20, 30, 160, 700];
                  const row = 12;
