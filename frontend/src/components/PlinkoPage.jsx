@@ -6,6 +6,56 @@ import { plinkoABI, plinkoAddress } from "../contracts/Plinko";
 import { useContractEvent } from "@metamask/sdk-react-ui";
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
 
+const usePlinkoGame = (betAmount, numberOfBets) => {
+  const { config } = usePrepareContractWrite({
+    address: plinkoAddress,
+    // abi: plinkoABI.abi,
+    abi: [
+      {
+        inputs: [
+          {
+            "internalType": "uint256",
+            "name": "wager",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "risk",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "numRows",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "multipleBets",
+            "type": "uint256"
+          }
+        ],
+        name: "play",
+        outputs: [],
+        stateMutability: "payable",
+        type: "function"
+      }
+    ],
+    functionName: 'play',
+    args: [betAmount, 0, 8, numberOfBets]
+  })
+
+  const { write, data } = useContractWrite(config);
+  console.log('hash', data)
+  const receipt = useWaitForTransaction({ hash: data?.hash , onSettled(data) {
+    console.log('Success', JSON.stringify(data))
+  },
+  onError(error) {
+    console.log('Error', error)
+  }});
+
+  return { write, receipt };
+}
+
 const ControlledInput = (props) => {
   const { value, onChange, ...rest } = props;
   const [cursor, setCursor] = useState();
@@ -95,98 +145,8 @@ export default function PlinkoPage() {
   const [betAmount, setBetAmount] = useState(0);
   const [numberOfBets, setNumberOfBets] = useState(1);
 
-  // const unwatch = useContractEvent(
-  //   {
-  //     address: plinkoAddress,
-  //     abi: [
-  //       {
-  //         anonymous: false,
-  //         inputs: [
-  //           {
-  //             "indexed": true,
-  //             "internalType": "address",
-  //             "name": "playerAddress",
-  //             "type": "address"
-  //           },
-  //           {
-  //             "indexed": false,
-  //             "internalType": "uint256",
-  //             "name": "ballNumber",
-  //             "type": "uint256"
-  //           },
-  //           {
-  //             "indexed": false,
-  //             "internalType": "uint256",
-  //             "name": "landingPosition",
-  //             "type": "uint256"
-  //           },
-  //           {
-  //             "indexed": false,
-  //             "internalType": "uint256",
-  //             "name": "multiplier",
-  //             "type": "uint256"
-  //           }
-  //         ],
-  //         name: "Ball_Landed_Event",
-  //         type: "event"
-  //       }
-  //     ],
-  //     eventName: 'Ball_Landed_Event',
-  //     listener: (log) => {
-  //       console.log(log);
-  //     },
-  //   },
-  //   (log) => console.log(log),
-  // )
-
-
-
-
-  const { config } = usePrepareContractWrite({
-    address: plinkoAddress,
-    // abi: plinkoABI.abi,
-    abi: [
-      {
-        inputs: [
-          {
-            "internalType": "uint256",
-            "name": "wager",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint8",
-            "name": "risk",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint8",
-            "name": "numRows",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "multipleBets",
-            "type": "uint256"
-          }
-        ],
-        name: "play",
-        outputs: [],
-        stateMutability: "payable",
-        type: "function"
-      }
-    ],
-    functionName: 'play',
-    args: [1, 0, 8, 1]
-  })
-
-  const { write, data } = useContractWrite(config);
-  console.log('hash', data)
-  const receipt = useWaitForTransaction({ hash: data?.hash , onSuccess(data) {
-    console.log('Success', receipt)
-  },
-  onError(error) {
-    console.log('Error', error)
-  }});
+  const { account } = useAccount();
+  const { write, receipt } = usePlinkoGame(betAmount, numberOfBets);
 
   const handleClick = () => {
     write?.();
@@ -197,7 +157,7 @@ export default function PlinkoPage() {
     for (let i = 0; i < numberOfBets; i++) {
       random_number.push(Math.floor(Math.random() * 255));
     }
-    plinkoRef.current.refAddBall(random_number, numberOfBets);
+    // plinkoRef.current.refAddBall(random_number, numberOfBets);
   };
 
   const handleNumberOfBetsChange = (value) => {

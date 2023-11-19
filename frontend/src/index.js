@@ -37,7 +37,7 @@ const router = createBrowserRouter(
 );
 
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <MetaMaskUIProvider
       debug={false}
       sdkOptions={{
@@ -51,5 +51,5 @@ root.render(
     >
       <RouterProvider router={router} />
     </MetaMaskUIProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
