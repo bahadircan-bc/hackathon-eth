@@ -17,7 +17,10 @@ contract Bankroll is Ownable {
 
     event Staked(address indexed user, uint256 amount, uint256 time);
     event Unstaked(address indexed user, uint256 amount, uint256 time);
-
+    modifier onlyGame() {
+        require(isGame[msg.sender], "Caller is not an authorized game");
+        _;
+    }
     receive() external payable {}
 
     struct Staker {
@@ -25,6 +28,7 @@ contract Bankroll is Ownable {
         int256 stakerInitialEarnings;
         uint256 stakeTime;
     }
+
     // Stores whether a game contract is allowed to access the bankroll
     mapping(address => bool) public isGame;
 
@@ -37,6 +41,8 @@ contract Bankroll is Ownable {
     // Event emitted when token state is changed
     event TokenStateChanged(address token, bool isAllowed);
 
+    // Event emitted when a user harvests tokens
+    event Harvested(address indexed user, uint256 amount);
     constructor(address _stakingToken) {
         stakingToken = IERC20(_stakingToken);
     }
@@ -86,10 +92,49 @@ contract Bankroll is Ownable {
         emit Unstaked(msg.sender, _amount, block.timestamp);
     }
 
-    function updatePoolEarnings() internal {
+    function getHarvestableAmount(address _staker) public view returns (uint256) {
+        Staker memory staker = stakers[_staker];
+        if (staker.stakedAmount == 0) {
+            return 0;
+        }
+
+        int256 stakerEarnings = (currentEarnings() - staker.stakerInitialEarnings) * int256(staker.stakedAmount) / int256(totalStaked);
+        if (stakerEarnings <= 0) {
+            return 0;
+        }
+
+        return uint256(stakerEarnings);
+    }
+
+    function harvest() external {
+        updatePoolEarnings();
+
+        Staker storage staker = stakers[msg.sender];
+        require(staker.stakedAmount > 0, "No staked amount");
+
+        int256 stakerEarnings = (totalEarnings - staker.stakerInitialEarnings) * int256(staker.stakedAmount) / int256(totalStaked);
+
+        require(stakerEarnings > 0, "No earnings to harvest");
+
+        staker.stakerInitialEarnings = totalEarnings;
+
+        uint256 harvestAmount = uint256(stakerEarnings);
+        stakingToken.safeTransfer(msg.sender, harvestAmount);
+
+        emit Harvested(msg.sender, harvestAmount);
+    }
+
+
+    function _updatePoolEarnings() internal {
+        require(isGame[msg.sender], "Only games can update pool earnings");
         int256 currentBalance = int256(stakingToken.balanceOf(address(this)));
         int256 currentEarnings = currentBalance - int256(totalStaked);
         totalEarnings += currentEarnings;
+    }
+
+    // External function that can be called by other contracts
+    function updatePoolEarningsExternal() external onlyGame {
+        _updatePoolEarnings();
     }
 
     function currentEarnings() public view returns (int256) {
@@ -117,5 +162,6 @@ contract Bankroll is Ownable {
         uint256 balance = token.balanceOf(address(this));
         require(balance >= payout, "Not enough balance.");
         token.safeTransfer(player, payout);
+        updatePoolEarnings();
     }
 }

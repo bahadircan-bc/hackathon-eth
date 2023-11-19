@@ -11,6 +11,9 @@ interface IBankroll {
         address player,
         uint256 payout
     ) external;
+
+    function updatePoolEarningsExternal() external;
+
 }
 
     struct Bet {
@@ -109,6 +112,7 @@ contract Plinko is ReentrancyGuard, Ownable {
         uint256 randomNumber = getPseudoRandomness();
         uint256 payout = calculatePayout(game, randomNumber);
         makePayout(game, payout);
+        bankroll.updatePoolEarningsExternal();
     }
 
     function calculatePayout(
