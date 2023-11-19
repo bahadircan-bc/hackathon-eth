@@ -72,6 +72,9 @@ describe("Project", function () {
 
         await testToken.connect(addr1).approve(bankrollContract.address, totalSupply);
         await testToken.connect(addr1).approve(plinko.address, totalSupply);
+        await testToken.connect(owner).approve(bankrollContract.address, totalSupply);
+        await testToken.connect(owner).approve(plinko.address, totalSupply);
+        bankrollContract.setGame(plinko.address, true);
 
         await plinko.setBankroll(bankrollContract.address);
         plinko.setMultipliers(0, 8, multipliers)
@@ -171,13 +174,24 @@ describe("Project", function () {
         it("Bankroll should have starting funds", async function () {
             expect(await testToken.balanceOf(await bankrollContract.address)).to.equal(bankrollFunds);
         });
+
+        it("Should get harvestable amount correctly", async function () {
+            const harvestable = await bankrollContract.getHarvestableAmount(addr1.address);
+            expect(harvestable).to.not.be.undefined;
+        });
+        it("Harvestable amount should change after win", async function (){
+            await bankrollContract.stake(ethers.utils.parseUnits("1000", 18))
+            await PlayPlinko(plinko, 5, 1000, 8, 0);
+            const harvestable = await bankrollContract.getHarvestableAmount(owner.address);
+            console.log("HARVESTABLE", harvestable);
+        });
         describe("Simulations", function () {
 
             it("Should Play Successfully", async function () {
-                await PlayPlinko(plinko, 1, 1000, 8, 0);
+                await PlayPlinko(plinko, 1, 1000, 8, 0, false);
             });
             it("Should play with multiple balls", async function () {
-                await PlayPlinko(plinko, 2, 1000, 8, 0);
+                await PlayPlinko(plinko, 2, 1000, 8, 0, false);
             });
             it("Should result in %2.062 profit (multiple bets)", async function () {
                 const gameCount = 10;

@@ -62,7 +62,7 @@ contract Bankroll is Ownable {
     }
 
     function stake(uint256 _amount) external {
-        updatePoolEarnings();
+        _updatePoolEarnings();
 
         require(_amount > 0, "Amount should be greater than 0");
 
@@ -77,7 +77,7 @@ contract Bankroll is Ownable {
     }
 
     function unstake(uint256 _amount) external {
-        updatePoolEarnings();
+        _updatePoolEarnings();
 
         require(_amount > 0, "Amount should be greater than 0");
         require(stakers[msg.sender].stakedAmount >= _amount, "Insufficient staked amount");
@@ -107,7 +107,7 @@ contract Bankroll is Ownable {
     }
 
     function harvest() external {
-        updatePoolEarnings();
+        _updatePoolEarnings();
 
         Staker storage staker = stakers[msg.sender];
         require(staker.stakedAmount > 0, "No staked amount");
@@ -126,7 +126,6 @@ contract Bankroll is Ownable {
 
 
     function _updatePoolEarnings() internal {
-        require(isGame[msg.sender], "Only games can update pool earnings");
         int256 currentBalance = int256(stakingToken.balanceOf(address(this)));
         int256 currentEarnings = currentBalance - int256(totalStaked);
         totalEarnings += currentEarnings;
@@ -134,6 +133,7 @@ contract Bankroll is Ownable {
 
     // External function that can be called by other contracts
     function updatePoolEarningsExternal() external onlyGame {
+        require(isGame[msg.sender], "Only games can update pool earnings");
         _updatePoolEarnings();
     }
 
@@ -162,6 +162,6 @@ contract Bankroll is Ownable {
         uint256 balance = token.balanceOf(address(this));
         require(balance >= payout, "Not enough balance.");
         token.safeTransfer(player, payout);
-        updatePoolEarnings();
+        _updatePoolEarnings();
     }
 }
