@@ -5,9 +5,11 @@ import {
   useBalance,
   useContractWrite,
   usePrepareContractWrite,
+  useWaitForTransaction,
   useSDK,
 } from "@metamask/sdk-react-ui";
 import { bankrollAddress } from "../contracts/Bankroll";
+import { useDebounce } from "./useDebounce";
 
 const useGetContractFunction = (address, abi, functionName, args) => {
   const { config } = usePrepareContractWrite({
@@ -67,23 +69,20 @@ export default function StakerPage() {
   const tokenSymbol = "ASN";
   const userBalance = 0;
   const [value, setValue] = React.useState(0);
+  const debouncedValue = useDebounce(value, 500);
   const onChange = (e) => {
     setValue(e.target.value);
   };
 
-  const [stakeWindowOn, setStakeWindowOn] = React.useState(true);
-  const [harvestWindowOn, setHarvestWindowOn] = React.useState(false);
-  const [unstakeWindowOn, setUnstakeWindowOn] = React.useState(false);
-
-  const stakeTx = useGetContractFunction(
-    bankrollAddress,
-    [
+  const stake = usePrepareContractWrite({
+    address: bankrollAddress,
+    abi: [
       {
         inputs: [
           {
-            internalType: "uint256",
-            name: "_amount",
-            type: "uint256",
+            'internalType': "uint256",
+            'name': "_amount",
+            'type': "uint256",
           },
         ],
         name: "stake",
@@ -92,64 +91,35 @@ export default function StakerPage() {
         type: "function",
       },
     ],
-    "stake",
-    [value]
-  );
+    functionName: "stake",
+    args: [debouncedValue],
+  });
+  console.log(stake);
+  const stakeContract = useContractWrite(stake.config)
+  console.log(stakeContract)
 
-  const handleStake = async () => {
-    console.log("stake");
-    try {
-      const tx = await stakeTx?.();
-      console.log(tx);
-    } catch (err) {
-      console.warn(`failed to connect..`, err);
-    }
-  };
+  const { isLoading, isSuccess } = useWaitForTransaction({
+    hash: stakeContract.data?.hash,
+  })
 
-  const unstakeTx = useGetContractFunction(
-    bankrollAddress,
-    [
-      {
-        inputs: [
-          {
-            internalType: "uint256",
-            name: "_amount",
-            type: "uint256",
-          },
-        ],
-        name: "unstake",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function",
-      },
-    ],
-    "unstake",
-    [value]
-  );
+  const [stakeWindowOn, setStakeWindowOn] = React.useState(true);
+  const [harvestWindowOn, setHarvestWindowOn] = React.useState(false);
+  const [unstakeWindowOn, setUnstakeWindowOn] = React.useState(false);
 
-  const handleUnstake = async () => {
-    try {
-      const tx = await unstakeTx?.();
-      console.log(tx);
-    } catch (err) {
-      console.warn(`failed to connect..`, err);
-    }
-  };
-
-  const { account } = useSDK();
-  console.log(account);
-  const { data } = useBalance({ account: account, watch: true });
-  console.log(data);
+  // const { account } = useSDK();
+  // console.log(account);
+  // const { data } = useBalance({ account: account, watch: true });
+  console.log(stakeContract.data);
 
   const handleClick = () => {
     if (stakeWindowOn) {
-      handleStake();
+      stakeContract.write();
     } else if (unstakeWindowOn) {
-      handleUnstake();
+      // handleUnstake();
     } else if (harvestWindowOn) {
       console.log("harvest");
     }
-  }
+  };
   return (
     <div
       id="window-container"
@@ -207,7 +177,10 @@ export default function StakerPage() {
             <AmountInput value={value} onChange={onChange} />
           </div>
           <StakeInformation />
-          <div className="w-full text-center bg-white p-2 mt-4 rounded-lg text-black cursor-pointer" onClick={handleClick}>
+          <div
+            className="w-full text-center bg-white p-2 mt-4 rounded-lg text-black cursor-pointer"
+            onClick={handleClick}
+          >
             {stakeWindowOn
               ? "Stake"
               : unstakeWindowOn

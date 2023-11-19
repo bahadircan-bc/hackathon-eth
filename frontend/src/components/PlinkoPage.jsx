@@ -1,60 +1,17 @@
 import React, { useRef, useState, useEffect } from "react";
 import PlinkoGame from "./PlinkoGame";
 import GradientButton from "./GradientButton";
-import { useAccount, useContractWrite, usePrepareContractWrite, useSignMessage, useWaitForTransaction } from "@metamask/sdk-react-ui";
+import {
+  useAccount,
+  useContractWrite,
+  usePrepareContractWrite,
+  useSignMessage,
+  useWaitForTransaction,
+} from "@metamask/sdk-react-ui";
 import { plinkoABI, plinkoAddress } from "../contracts/Plinko";
 import { useContractEvent } from "@metamask/sdk-react-ui";
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
-
-const usePlinkoGame = (betAmount, numberOfBets) => {
-  const { config } = usePrepareContractWrite({
-    address: plinkoAddress,
-    // abi: plinkoABI.abi,
-    abi: [
-      {
-        inputs: [
-          {
-            "internalType": "uint256",
-            "name": "wager",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint8",
-            "name": "risk",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint8",
-            "name": "numRows",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "multipleBets",
-            "type": "uint256"
-          }
-        ],
-        name: "play",
-        outputs: [],
-        stateMutability: "payable",
-        type: "function"
-      }
-    ],
-    functionName: 'play',
-    args: [betAmount, 0, 8, numberOfBets]
-  })
-
-  const { write, data } = useContractWrite(config);
-  console.log('hash', data)
-  const receipt = useWaitForTransaction({ hash: data?.hash , onSettled(data) {
-    console.log('Success', JSON.stringify(data))
-  },
-  onError(error) {
-    console.log('Error', error)
-  }});
-
-  return { write, receipt };
-}
+import { useDebounce } from "./useDebounce";
 
 const ControlledInput = (props) => {
   const { value, onChange, ...rest } = props;
@@ -78,7 +35,10 @@ const ControlledInput = (props) => {
 };
 
 const LabeledInput = (props) => {
-  const { label, ...rest } = props;
+  const { label, value, onChange, ...rest } = props;
+  const handleChange = (value) => {
+    onChange && onChange(value);
+  };
   return (
     <div className="flex flex-col text-xs">
       <div className="text-xs text-white pb-1">{label}</div>
@@ -87,7 +47,11 @@ const LabeledInput = (props) => {
         className="flex flex-row w-full bg-[#141414] rounded-md items-center relative p-2"
       >
         <div className="px-2">ASN</div>
-        <ControlledInput className="flex-1 p-2 focus:outline-none rounded-md bg-[#141414] bg-opacity-20 text-sm" />
+        <ControlledInput
+          value={value}
+          onChange={handleChange}
+          className="flex-1 p-2 focus:outline-none rounded-md bg-[#141414] bg-opacity-20 text-sm"
+        />
         <div className="absolute right-5 rounded-lg text-[#6a6a6a] bg-[#1a1a1a] px-2 py-1 cursor-pointer">
           Max
         </div>
@@ -142,11 +106,62 @@ const SliderInput = (props) => {
 
 export default function PlinkoPage() {
   const plinkoRef = useRef();
-  const [betAmount, setBetAmount] = useState(0);
   const [numberOfBets, setNumberOfBets] = useState(1);
+  const [betAmount, setBetAmount] = useState(0);
+  const debouncedBetAmount = useDebounce(betAmount, 500);
 
-  const { account } = useAccount();
-  const { write, receipt } = usePlinkoGame(betAmount, numberOfBets);
+  const { config } = usePrepareContractWrite({
+    address: plinkoAddress,
+    // abi: plinkoABI.abi,
+    abi: [
+      {
+        inputs: [
+          {
+            internalType: "uint256",
+            name: "wager",
+            type: "uint256",
+          },
+          {
+            internalType: "uint8",
+            name: "risk",
+            type: "uint8",
+          },
+          {
+            internalType: "uint8",
+            name: "numRows",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "multipleBets",
+            type: "uint256",
+          },
+        ],
+        name: "play",
+        outputs: [],
+        stateMutability: "payable",
+        type: "function",
+      },
+    ],
+    functionName: "play",
+    args: [betAmount, 0, 8, parseInt(numberOfBets)],
+    enabled: Boolean(betAmount),
+  });
+
+  const { write, data } = useContractWrite(config);
+
+  console.log("hash", data);
+  
+  const receipt = useWaitForTransaction({
+    hash: data?.hash,
+    onSettled(data) {
+      console.log("Success", JSON.stringify(data));
+    },
+    onError(error) {
+      console.log("Error", error);
+    },
+    timeout: 1000 * 60 * 100,
+  });
 
   const handleClick = () => {
     write?.();
@@ -167,23 +182,26 @@ export default function PlinkoPage() {
   return (
     <div className="flex-1 flex items-center justify-center gap-4">
       <MetaMaskButton
-          buttonStyle={{
-            position: "absolute",
-            top: 3,
-            right: 50,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        />
+        buttonStyle={{
+          position: "absolute",
+          top: 3,
+          right: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      />
       <PlinkoGame ref={plinkoRef} />
       <div className="px-5 py-5 rounded-xl text-white w-1/4 h-[400px] bg-[#1a1a1a] gap-5 flex flex-col">
         <LabeledInput
           label="Bet Amount"
           className="focus:outline-none rounded-2xl p-1 text-black"
+          value={betAmount}
+          onChange={setBetAmount}
         />
         <SliderInput
           label="Multiple Bets"
+          value={numberOfBets}
           onChange={handleNumberOfBetsChange}
         />
         <GradientButton
