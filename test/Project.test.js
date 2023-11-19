@@ -109,6 +109,15 @@ describe("Project", function () {
                 .to.be.revertedWith("Not enough balance.");
         });
 
+        it("should allow users to stake tokens", async function () {
+            const stakeAmount = ethers.utils.parseUnits("100", 18);
+            await testToken.connect(addr1).approve(bankrollContract.address, stakeAmount);
+            await expect(bankrollContract.connect(addr1).stake(stakeAmount))
+                .to.emit(bankrollContract, 'Staked');
+            const stakerInfo = await bankrollContract.stakers(addr1.address);
+            expect(stakerInfo.stakedAmount).to.equal(stakeAmount);
+        });
+
         it("should allow users to unstake tokens", async function () {
             const stakeAmount = ethers.utils.parseUnits("100", 18);
             const unstakeAmount = ethers.utils.parseUnits("50", 18);

@@ -125,7 +125,7 @@ contract Plinko is ReentrancyGuard, Ownable {
                 if (randomNumber & 1 != 0) {
                     position++;
                 }
-                randomNumber >> 1;
+                randomNumber >>= 1;
             }
             emit Ball_Landed_Event(game.player, ballNumber, position, plinkoMultipliers[game.risk][game.rows][position]);
             //multipliers are multiplied by 100 to avoid floating point numbers
