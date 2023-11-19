@@ -5,6 +5,7 @@ const bankRollFunds = ethers.utils.parseUnits("100000000", 18);
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with the account:", deployer.address);
+
     const TestToken = await ethers.getContractFactory("AsenaToken");
     const testToken = await TestToken.deploy(initialSupply);
 
@@ -20,7 +21,11 @@ async function main() {
     await bankrollContract.setToken(await testToken.address, true);
 
     await testToken.transfer(bankrollContract.address, bankRollFunds);
-
+    testToken.approve(plinko.address, ethers.utils.parseUnits("1000000000000", 18));
+    testToken.approve(bankrollContract.address, ethers.utils.parseUnits("1000000000000", 18));
+    plinko.setBankroll(bankrollContract);
+    bankrollContract.setToken(testToken.address, true);
+    bankrollContract.setGame(plinko.address, true);
     console.log("testToken address:", testToken.address);
 }
 
