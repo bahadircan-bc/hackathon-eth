@@ -193,7 +193,7 @@ export default function PlinkoPage() {
 
   const { write, data } = useContractWrite(config);
 
-  console.log("hash", data);
+  console.log("hash", data?.hash);
 
   const receipt = useWaitForTransaction({
     hash: data?.hash,
