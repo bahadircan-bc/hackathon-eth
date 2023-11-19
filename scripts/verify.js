@@ -1,11 +1,12 @@
 const hre = require("hardhat");
+const {ethers} = require("hardhat");
 const initialSupply = ethers.utils.parseUnits("10000000000000000", 18);
 
 async function main() {
     const contracts = [
-        { address: '0x73d910c167eD88e6be217f5a006FfA291b3eeaef', constructorArguments: [initialSupply] }, //token
-        { address: '0xc4651cd64d8b68f957371cc08a114430f4bfc449', constructorArguments: ['0x73d910c167eD88e6be217f5a006FfA291b3eeaef'] }, //plinko
-        { address: '0xF1fbD98Ac8727e88469292B8b87A65B4f7695bC0', constructorArguments: ['0x73d910c167eD88e6be217f5a006FfA291b3eeaef'] }, //bankroll
+        { address: '0x6Da1C252c2B3e5dF9479aBA29Cd4e871db472e90', constructorArguments: [initialSupply] }, //token
+        { address: '0xb58775Af4ec3Fc6307421be05b7f17A2042cB839', constructorArguments: ['0x6Da1C252c2B3e5dF9479aBA29Cd4e871db472e90'] }, //plinko
+        { address: '0xa5E4c1e19471A753C447e728DD2722a93bfDC34C', constructorArguments: ['0x6Da1C252c2B3e5dF9479aBA29Cd4e871db472e90'] }, //bankroll
     ];
 
     for (let contract of contracts) {

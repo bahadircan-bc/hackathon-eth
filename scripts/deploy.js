@@ -6,11 +6,11 @@ async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with the account:", deployer.address);
 
-    const TestToken = await ethers.getContractFactory("AsenaToken");
+    const TestToken = await ethers.getContractFactory("WiserUSD");
     const testToken = await TestToken.deploy(initialSupply);
 
     const Plinko = await ethers.getContractFactory("Plinko");
-    const plinko = await Plinko.deploy("0x73d910c167eD88e6be217f5a006FfA291b3eeaef");
+    const plinko = await Plinko.deploy(testToken.address);
     await plinko.deployed();
 
     const BankrollContract = await ethers.getContractFactory("Bankroll");
@@ -18,7 +18,7 @@ async function main() {
     const bankrollContract = await BankrollContract.deploy(testToken.address);
     await bankrollContract.deployed();
 
-    await bankrollContract.setToken(await testToken.address, true);
+    await bankrollContract.setToken(testToken.address, true);
 
     await testToken.transfer(bankrollContract.address, bankRollFunds);
     testToken.approve(plinko.address, ethers.utils.parseUnits("1000000000000", 18));

@@ -25,8 +25,7 @@ const config = {
         network: 'scrollSepolia',
         chainId: 534351,
         urls: {
-          apiURL: 'https://api.scrollscan.com/api',
-          browserURL: 'https://api-sepolia.scrollscan.com/api',
+          apiURL: 'https://blockscout.scroll.io/api',
         },
       },
     ],
