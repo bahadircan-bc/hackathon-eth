@@ -6,8 +6,8 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract AsenaToken is ERC20, Ownable {
-    constructor(uint256 initialSupply) ERC20("Asena Test Token", "ASN") {
+contract WiserUSD is ERC20, Ownable {
+    constructor(uint256 initialSupply) ERC20("Wiser USD", "WUSD") {
         _mint(msg.sender, initialSupply);
     }
 

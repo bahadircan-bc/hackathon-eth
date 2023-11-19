@@ -368,8 +368,8 @@
       ]
     },
     "/Users/candas/Documents/GitHub/hackathon-eth/contracts/Token.sol": {
-      "lastModificationDate": 1700334952726,
-      "contentHash": "41de6187e95eb49cacf2c652026ac25f",
+      "lastModificationDate": 1700362254851,
+      "contentHash": "1a3b77fdd47f271a95683dac62f96f36",
       "sourceName": "contracts/Token.sol",
       "solcConfig": {
         "version": "0.8.17",
@@ -402,7 +402,7 @@
         "^0.8.0"
       ],
       "artifacts": [
-        "AsenaToken"
+        "WiserUSD"
       ]
     },
     "/Users/candas/Documents/GitHub/hackathon-eth/contracts/Plinko.sol": {
