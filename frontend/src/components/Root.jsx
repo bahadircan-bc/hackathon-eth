@@ -1,21 +1,29 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
 
 import { useSDK } from "@metamask/sdk-react";
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
 
+import { styled } from "styled-components";
+import { plinkoABI, plinkoAddress } from "../contracts/Plinko";
+
 export default function Root() {
   const [account, setAccount] = React.useState(null);
   const { sdk, connected, connecting, provider, chainId } = useSDK();
 
-  const connect = async () => {
-    try {
-      const accounts = await sdk?.connect();
-      setAccount(accounts?.[0]);
-    } catch (err) {
-      console.warn(`failed to connect..`, err);
-    }
-  };
+  useEffect(() => {
+    const connect = async () => {
+      try {
+        const accounts = await sdk?.connect();
+        setAccount(accounts?.[0]);
+        console.log(accounts);
+      } catch (err) {
+        console.warn(`failed to connect..`, err);
+      }
+    };
+
+    connect();
+  });
 
   return (
     <div className="bg-black w-screen h-screen">
@@ -39,7 +47,6 @@ export default function Root() {
         >
           Become A Staker!
         </Link>
-        <MetaMaskButton buttonStyle={{position:'absolute', right:100}}/>
       </div>
       <div className="pt-[50px] flex w-screen h-screen">
         <Outlet />

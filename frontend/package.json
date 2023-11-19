@@ -5,21 +5,32 @@
   "dependencies": {
     "@metamask/sdk-react": "^0.12.1",
     "@metamask/sdk-react-ui": "^0.12.1",
+    "@pushprotocol/uiweb": "^1.1.19",
+    "assert": "^2.1.0",
     "bootstrap": "^4.4.1",
-    "ethers": "^5.4.7",
+    "browserify-zlib": "^0.2.0",
+    "ethers": "^5.6.9",
     "framer-motion": "^10.16.5",
+    "https-browserify": "^1.0.0",
     "matter-js": "^0.19.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.19.0",
-    "tailwindcss": "^3.3.5"
+    "stream-browserify": "^3.0.0",
+    "styled-components": "^6.1.1",
+    "tailwindcss": "^3.3.5",
+    "url": "^0.11.3"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1"
+    "customize-cra": "^1.0.0",
+    "react-app-rewired": "^2.2.1",
+    "react-scripts": "5.0.1",
+    "stream-http": "^3.2.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "tailwind": "tailwindcss -i ./src/index.css -o ./src/App.css --watch"
   },
