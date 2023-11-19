@@ -97,6 +97,7 @@ export default function StakerPage() {
   );
 
   const handleStake = async () => {
+    console.log("stake");
     try {
       const tx = await stakeTx?.();
       console.log(tx);
@@ -140,6 +141,15 @@ export default function StakerPage() {
   const { data } = useBalance({ account: account, watch: true });
   console.log(data);
 
+  const handleClick = () => {
+    if (stakeWindowOn) {
+      handleStake();
+    } else if (unstakeWindowOn) {
+      handleUnstake();
+    } else if (harvestWindowOn) {
+      console.log("harvest");
+    }
+  }
   return (
     <div
       id="window-container"
@@ -184,18 +194,6 @@ export default function StakerPage() {
           >
             Unstake
           </div>
-          {/* <div
-            className={`p-2 rounded-t-lg border-r border-t min-w-[20%] border-dark text-sm ${
-              harvestWindowOn ? "bg-[#1a1a1a] text-white" : "bg-[#141414]"
-            } cursor-pointer`}
-            onClick={() => {
-              setStakeWindowOn(false);
-              setHarvestWindowOn(true);
-              setUnstakeWindowOn(false);
-            }}
-          >
-            Harvest
-          </div> */}
         </div>
         <div
           id="card-container"
@@ -209,7 +207,7 @@ export default function StakerPage() {
             <AmountInput value={value} onChange={onChange} />
           </div>
           <StakeInformation />
-          <div className="w-full text-center bg-white p-2 mt-4 rounded-lg text-black">
+          <div className="w-full text-center bg-white p-2 mt-4 rounded-lg text-black cursor-pointer" onClick={handleClick}>
             {stakeWindowOn
               ? "Stake"
               : unstakeWindowOn
@@ -219,7 +217,7 @@ export default function StakerPage() {
               : null}
           </div>
         </div>
-        <div className="absolute top-0 left-0 w-1/2 h-1/4 -translate-x-[calc(100%_+_4px)] rounded-lg bg-[#1a1a1a] flex flex-col text-center items-center justify-center p-4">
+        <div className="absolute top-0 left-0 w-1/2 h-2/5 -translate-x-[calc(100%_+_4px)] rounded-xl bg-[#1a1a1a] flex flex-col text-center items-center justify-center px-4 py-12">
           Harvestable Tokens: <br /> 0 ASN
           <div className="cursor-pointer mt-auto bg-white text-black p-1 w-full rounded-lg text-sm">
             Harvest
