@@ -1,6 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import PlinkoGame from "./PlinkoGame";
 import GradientButton from "./GradientButton";
+import { useAccount, useContractWrite, usePrepareContractWrite, useSignMessage, useWaitForTransaction } from "@metamask/sdk-react-ui";
+import { plinkoABI, plinkoAddress } from "../contracts/Plinko";
+import { useContractEvent } from "@metamask/sdk-react-ui";
+import { MetaMaskButton } from "@metamask/sdk-react-ui";
 
 const ControlledInput = (props) => {
   const { value, onChange, ...rest } = props;
@@ -26,9 +30,18 @@ const ControlledInput = (props) => {
 const LabeledInput = (props) => {
   const { label, ...rest } = props;
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col text-xs">
       <div className="text-xs text-white pb-1">{label}</div>
-      <ControlledInput {...rest} />
+      <div
+        id="amount-input"
+        className="flex flex-row w-full bg-[#141414] rounded-md items-center relative p-2"
+      >
+        <div className="px-2">ASN</div>
+        <ControlledInput className="flex-1 p-2 focus:outline-none rounded-md bg-[#141414] bg-opacity-20 text-sm" />
+        <div className="absolute right-5 rounded-lg text-[#6a6a6a] bg-[#1a1a1a] px-2 py-1 cursor-pointer">
+          Max
+        </div>
+      </div>
     </div>
   );
 };
@@ -38,7 +51,7 @@ const SliderInput = (props) => {
   const [amount, setAmount] = useState(0);
   const [min, max] = [0, 10];
   const handleChange = (e) => {
-    if (e.target.value < min) {
+    if (e.target.value < min || isNaN(e.target.value)) {
       setAmount(min);
       onChange && onChange(min);
       return;
@@ -48,11 +61,6 @@ const SliderInput = (props) => {
       onChange && onChange(max);
       return;
     }
-    if (isNaN(e.target.value)) {
-      setAmount(min);
-      onChange && onChange(min);
-      return;
-    }
     setAmount(e.target.value);
     onChange && onChange(e.target.value);
   };
@@ -60,7 +68,6 @@ const SliderInput = (props) => {
     <div className="flex flex-col">
       <div className="text-xs text-white pb-1">{label}</div>
       <div className="flex flex-row gap-4">
-        {/* <div className="min-w-[20px]">{amount}</div> */}
         <input
           className="text-white w-[20px] bg-transparent focus:outline-none"
           value={amount}
@@ -87,7 +94,103 @@ export default function PlinkoPage() {
   const plinkoRef = useRef();
   const [betAmount, setBetAmount] = useState(0);
   const [numberOfBets, setNumberOfBets] = useState(1);
+
+  // const unwatch = useContractEvent(
+  //   {
+  //     address: plinkoAddress,
+  //     abi: [
+  //       {
+  //         anonymous: false,
+  //         inputs: [
+  //           {
+  //             "indexed": true,
+  //             "internalType": "address",
+  //             "name": "playerAddress",
+  //             "type": "address"
+  //           },
+  //           {
+  //             "indexed": false,
+  //             "internalType": "uint256",
+  //             "name": "ballNumber",
+  //             "type": "uint256"
+  //           },
+  //           {
+  //             "indexed": false,
+  //             "internalType": "uint256",
+  //             "name": "landingPosition",
+  //             "type": "uint256"
+  //           },
+  //           {
+  //             "indexed": false,
+  //             "internalType": "uint256",
+  //             "name": "multiplier",
+  //             "type": "uint256"
+  //           }
+  //         ],
+  //         name: "Ball_Landed_Event",
+  //         type: "event"
+  //       }
+  //     ],
+  //     eventName: 'Ball_Landed_Event',
+  //     listener: (log) => {
+  //       console.log(log);
+  //     },
+  //   },
+  //   (log) => console.log(log),
+  // )
+
+
+
+
+  const { config } = usePrepareContractWrite({
+    address: plinkoAddress,
+    // abi: plinkoABI.abi,
+    abi: [
+      {
+        inputs: [
+          {
+            "internalType": "uint256",
+            "name": "wager",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "risk",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint8",
+            "name": "numRows",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "multipleBets",
+            "type": "uint256"
+          }
+        ],
+        name: "play",
+        outputs: [],
+        stateMutability: "payable",
+        type: "function"
+      }
+    ],
+    functionName: 'play',
+    args: [1, 0, 8, 1]
+  })
+
+  const { write, data } = useContractWrite(config);
+  console.log('hash', data)
+  const receipt = useWaitForTransaction({ hash: data?.hash , onSuccess(data) {
+    console.log('Success', receipt)
+  },
+  onError(error) {
+    console.log('Error', error)
+  }});
+
   const handleClick = () => {
+    write?.();
+    console.log("clicked", receipt);
     console.log(numberOfBets);
     if (numberOfBets === 0) return;
     const random_number = [];
@@ -96,13 +199,25 @@ export default function PlinkoPage() {
     }
     plinkoRef.current.refAddBall(random_number, numberOfBets);
   };
+
   const handleNumberOfBetsChange = (value) => {
     setNumberOfBets(value);
   };
+
   return (
     <div className="flex-1 flex items-center justify-center gap-4">
+      <MetaMaskButton
+          buttonStyle={{
+            position: "absolute",
+            top: 3,
+            right: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        />
       <PlinkoGame ref={plinkoRef} />
-      <div className="border px-5 py-5 rounded-xl text-white w-1/4 h-[400px] bg-[#010101] bg-opacity-20 gap-5 flex flex-col">
+      <div className="px-5 py-5 rounded-xl text-white w-1/4 h-[400px] bg-[#1a1a1a] gap-5 flex flex-col">
         <LabeledInput
           label="Bet Amount"
           className="focus:outline-none rounded-2xl p-1 text-black"
@@ -112,7 +227,7 @@ export default function PlinkoPage() {
           onChange={handleNumberOfBetsChange}
         />
         <GradientButton
-          className="h-[50px] w-[100px] flex self-center justify-center items-center"
+          className="h-[50px] w-[100px] flex self-center justify-center items-center mt-auto"
           stroke={2}
           rounded={8}
           onClick={handleClick}

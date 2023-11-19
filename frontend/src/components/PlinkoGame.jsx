@@ -9,6 +9,12 @@ import {
   Body,
 } from "matter-js";
 
+import multiplier0_4 from "../assets/multipliers/multiplier0_4.png";
+import multiplier0_6 from "../assets/multipliers/multiplier0_6.png";
+import multiplier0_9 from "../assets/multipliers/multiplier0_9.png";
+import multiplier4_0 from "../assets/multipliers/multiplier4_0.png";
+import multiplier20_5 from "../assets/multipliers/multiplier20_5.png";
+
 const pinGap = 25;
 const pinSize = 3;
 
@@ -127,9 +133,7 @@ function generatePins(cw, ch) {
       const pin = Bodies.circle(pinX, pinY, pinSize, {
         label: `pin-${i}`,
         render: {
-          fillStyle: `#${Math.floor(
-            (Math.random() * 16777215) / 2 + 16777215 / 4
-          ).toString(16)}`,
+          fillStyle: 'white',
         },
         isStatic: true,
         friction: 0,
@@ -150,39 +154,39 @@ function generateMultipliers(cw, ch) {
   const multipliers = [
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier20_5,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier4_0,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier0_9,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier0_6,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier0_4,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier0_6,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier0_9,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier4_0,
     },
     {
       label: "block",
-      img: "../assets/multipliers/multiplier0_4.png",
+      img: multiplier20_5,
     },
   ];
 
@@ -199,13 +203,13 @@ function generateMultipliers(cw, ch) {
         isStatic: true,
         render: {
           sprite: {
-            xScale: 1,
-            yScale: 1,
-            // texture: multiplier.img
+            texture: multiplier.img,
+            xScale: 0.08,
+            yScale: 0.08,
           },
-          fillStyle: `#${Math.floor(
-            (Math.random() * 16777215) / 2 + 16777215 / 4
-          ).toString(16)}`,
+          // fillStyle: `#${Math.floor(
+          //   (Math.random() * 16777215) / 2 + 16777215 / 4
+          // ).toString(16)}`,
         },
         collisionFilter: {
           category: 2 ** 31 - 1,
@@ -364,8 +368,8 @@ const PlinkoGame = forwardRef((props, ref) => {
       // World.add(engine.current.world, generateRouteWalls(cw, ch, 0));
       World.add(engine.current.world, ball);
       Body.applyForce(ball, ball.position, {
-        x: Math.random() * 0.1 - 0.05,
-        y: Math.random() * 0.1,
+        x: Math.random() * 0.05 - 0.0025,
+        y: Math.random() * 0.05,
       });
       i++;
     }
@@ -391,7 +395,7 @@ const PlinkoGame = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="border w-[500px] aspect-[5/4] rounded-xl bg-[#010101] bg-opacity-20">
+    <div className="w-[500px] aspect-[5/4] rounded-xl bg-[#1a1a1a]">
       <div ref={scene} className="w-full h-full" />
     </div>
   );
