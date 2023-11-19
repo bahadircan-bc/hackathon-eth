@@ -31,17 +31,3 @@ Welcome to Wiser, a groundbreaking platform in the world of crypto betting. Wise
 
 Wiser is more than just a betting platform; it's a movement towards a fairer, more transparent, and community-driven betting ecosystem. Be a part of this revolution!
 
-For more details, visit our [website](#) and connect with us on [Discord](#).
-
----
-
-## Contact
-
-For inquiries, suggestions, or contributions, feel free to reach out.
-
-- **Email:** [info@wiser.com](mailto:info@wiser.com)
-- **GitHub:** [Wiser Repository](#)
-
----
-
-Join us in reshaping the betting landscape! 🎲🌐🚀
