@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   MetaMaskButton,
@@ -8,19 +8,8 @@ import {
   useWaitForTransaction,
   useSDK,
 } from "@metamask/sdk-react-ui";
-import { bankrollAddress } from "../contracts/Bankroll";
+import { bankrollABI, bankrollAddress } from "../contracts/Bankroll";
 import { useDebounce } from "./useDebounce";
-
-const useGetContractFunction = (address, abi, functionName, args) => {
-  const { config } = usePrepareContractWrite({
-    address: bankrollAddress,
-    abi: abi,
-    functionName: functionName,
-    args: args,
-  });
-  const { write } = useContractWrite(config);
-  return write;
-};
 
 const AmountInput = (props) => {
   return (
@@ -70,19 +59,22 @@ export default function StakerPage() {
   const userBalance = 0;
   const [value, setValue] = React.useState(0);
   const debouncedValue = useDebounce(value, 500);
+  const [stakeFunction, setStakeFunction] = useState(null);
+
   const onChange = (e) => {
     setValue(e.target.value);
   };
 
-  const stake = usePrepareContractWrite({
+  console.log(bankrollAddress);
+  const { config } = usePrepareContractWrite({
     address: bankrollAddress,
     abi: [
       {
         inputs: [
           {
-            'internalType': "uint256",
-            'name': "_amount",
-            'type': "uint256",
+            "internalType": "uint256",
+            "name": "_amount",
+            "type": "uint256",
           },
         ],
         name: "stake",
@@ -92,15 +84,14 @@ export default function StakerPage() {
       },
     ],
     functionName: "stake",
-    args: [debouncedValue],
+    args: [parseInt(debouncedValue)],
+    enabled: Boolean(debouncedValue),
   });
-  console.log(stake);
-  const stakeContract = useContractWrite(stake.config)
-  console.log(stakeContract)
+  console.log(config);
+  const { write, data } = useContractWrite(config);
+  console.log(write);
 
-  const { isLoading, isSuccess } = useWaitForTransaction({
-    hash: stakeContract.data?.hash,
-  })
+  const { isLoading, isSuccess } = useWaitForTransaction({ hash: data?.hash });
 
   const [stakeWindowOn, setStakeWindowOn] = React.useState(true);
   const [harvestWindowOn, setHarvestWindowOn] = React.useState(false);
@@ -109,11 +100,11 @@ export default function StakerPage() {
   // const { account } = useSDK();
   // console.log(account);
   // const { data } = useBalance({ account: account, watch: true });
-  console.log(stakeContract.data);
+  // console.log(stakeContract.data);
 
   const handleClick = () => {
     if (stakeWindowOn) {
-      stakeContract.write();
+      write();
     } else if (unstakeWindowOn) {
       // handleUnstake();
     } else if (harvestWindowOn) {

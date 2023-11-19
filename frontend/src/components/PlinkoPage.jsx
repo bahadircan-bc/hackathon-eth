@@ -5,7 +5,6 @@ import {
   useAccount,
   useContractWrite,
   usePrepareContractWrite,
-  useSignMessage,
   useWaitForTransaction,
 } from "@metamask/sdk-react-ui";
 import { plinkoABI, plinkoAddress } from "../contracts/Plinko";
@@ -110,6 +109,50 @@ export default function PlinkoPage() {
   const [betAmount, setBetAmount] = useState(0);
   const debouncedBetAmount = useDebounce(betAmount, 500);
 
+  const unwatch = useContractEvent({
+    address: plinkoAddress,
+    abi: [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "playerAddress",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "ballNumber",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "landingPosition",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "multiplier",
+            "type": "uint256"
+          }
+        ],
+        "name": "Ball_Landed_Event",
+        "type": "event"
+      }
+    ],
+    eventName: "Ball_Landed_Event",
+    listener: (logs) => {
+      console.log('listener called')
+      const { args } = logs[0];
+      console.log('args: ', args);
+      console.log('logs: ', logs);
+    },
+  });
+
   const { config } = usePrepareContractWrite({
     address: plinkoAddress,
     // abi: plinkoABI.abi,
@@ -151,7 +194,7 @@ export default function PlinkoPage() {
   const { write, data } = useContractWrite(config);
 
   console.log("hash", data);
-  
+
   const receipt = useWaitForTransaction({
     hash: data?.hash,
     onSettled(data) {
@@ -163,7 +206,7 @@ export default function PlinkoPage() {
     timeout: 1000 * 60 * 100,
   });
 
-  const handleClick = () => {
+  const handleClick = async () => {
     write?.();
     console.log("clicked", receipt);
     console.log(numberOfBets);
@@ -172,6 +215,9 @@ export default function PlinkoPage() {
     for (let i = 0; i < numberOfBets; i++) {
       random_number.push(Math.floor(Math.random() * 255));
     }
+    setTimeout(() => {
+      plinkoRef.current.refAddBall(random_number, numberOfBets);
+    }, 5000);
     // plinkoRef.current.refAddBall(random_number, numberOfBets);
   };
 
