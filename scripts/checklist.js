@@ -3,12 +3,12 @@ const initialSupply = ethers.utils.parseUnits("10000000000000000", 18);
 const bankRollFunds = ethers.utils.parseUnits("100000000", 18);
 
 const plinkoABI = require("../artifacts/contracts/Plinko.sol/Plinko.json").abi;
-const tokenABI = require("../artifacts/contracts/Token.sol/AsenaToken.json").abi;
+const tokenABI = require("../artifacts/contracts/Token.sol/WiserUSD.json").abi;
 const bankrollABI = require("../artifacts/contracts/CommunityBankroll.sol/Bankroll.json").abi;
 
-const plinkoAddress = "0xc4651cd64d8b68f957371cc08a114430f4bfc449";
-const bankrollAddress = "0xF1fbD98Ac8727e88469292B8b87A65B4f7695bC0";
-const tokenAddress = "0x73d910c167eD88e6be217f5a006FfA291b3eeaef";
+const plinkoAddress = "0xb58775Af4ec3Fc6307421be05b7f17A2042cB839";
+const bankrollAddress = "0xa5E4c1e19471A753C447e728DD2722a93bfDC34C";
+const tokenAddress = "0x6Da1C252c2B3e5dF9479aBA29Cd4e871db472e90";
 
 async function main() {
     const [owner] = await ethers.getSigners();
@@ -16,11 +16,13 @@ async function main() {
     const token = new ethers.Contract(tokenAddress, tokenABI, owner);
     const bankroll = new ethers.Contract(bankrollAddress, bankrollABI, owner);
 
-    token.approve(plinkoAddress, ethers.utils.parseUnits("1000000000000", 18));
-    token.approve(bankrollAddress, ethers.utils.parseUnits("1000000000000", 18));
-    plinko.setBankroll(bankrollAddress);
-    bankroll.setToken(tokenAddress, true);
-    bankroll.setGame(plinkoAddress, true);
+    const tx = await token.approve(plinkoAddress, ethers.utils.parseUnits("1000000000000", 18));
+    await tx.wait();
+    await token.approve(bankrollAddress, ethers.utils.parseUnits("1000000000000", 18));
+    await plinko.setBankroll(bankrollAddress);
+    await bankroll.setToken(tokenAddress, true);
+    await bankroll.setGame(plinkoAddress, true);
+    console.log(bankroll.isGame(plinkoAddress));
 }
 
 

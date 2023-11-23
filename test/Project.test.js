@@ -128,13 +128,11 @@ describe("Project", function () {
             let stakerInfo = await bankrollContract.stakers(addr1.address);
             await network.provider.send("evm_increaseTime", [24 * 60 * 60]); // Increase time by 1 day
             await network.provider.send("evm_mine");
-            console.log(stakerInfo.stakedAmount)
 
             await expect(bankrollContract.connect(addr1).unstake(unstakeAmount))
                 .to.emit(bankrollContract, 'Unstaked');
 
             stakerInfo = await bankrollContract.stakers(addr1.address);
-            console.log(stakerInfo.stakedAmount);
             expect(stakerInfo.stakedAmount).to.equal(stakeAmount.sub(unstakeAmount));
         });
 
@@ -181,7 +179,7 @@ describe("Project", function () {
         });
         it("Harvestable amount should change after win", async function (){
             await bankrollContract.stake(ethers.utils.parseUnits("1000", 18))
-            await PlayPlinko(plinko, 5, 1000, 8, 0);
+            await PlayPlinko(plinko, 3, 1000, 8, 0);
             const harvestable = await bankrollContract.getHarvestableAmount(owner.address);
             console.log("HARVESTABLE", harvestable);
         });
